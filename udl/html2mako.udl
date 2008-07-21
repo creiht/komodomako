@@ -1,0 +1,73 @@
+# Copyright (c) 2008 Chuck Thier
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+#    The above copyright notice and this permission notice shall be included in
+#    all copies or substantial portions of the Software.
+# 
+#    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
+#    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE 
+#    USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+family markup
+
+# Handle comments
+state IN_M_DEFAULT:
+/\s*##/ : paint(upto, M_DEFAULT), paint(include, SSL_COMMENT), \
+	at_eol(IN_M_DEFAULT) => IN_SSL_COMMENT
+'<%doc>' : paint(upto, M_DEFAULT), paint(include, SSL_OPERATOR), \
+	spush_check(IN_M_DEFAULT) => IN_M_COMMENT
+
+state IN_M_COMMENT:
+'</%doc>' : paint(upto, M_COMMENT), paint(include, SSL_OPERATOR), \
+	spop_check => IN_M_DEFAULT
+
+state IN_M_STAG_POST_TAGNAME:
+/\s*##/ : paint(upto, M_TAGSPACE), paint(include, SSL_COMMENT), \
+	at_eol(IN_M_STAG_POST_TAGNAME) => IN_SSL_COMMENT
+
+# Handle control structures
+state IN_M_DEFAULT:
+/%\s*end(if|for|while|try|def)/ : paint(upto, M_DEFAULT), \
+	paint(include, SSL_OPERATOR), \
+	at_eol(IN_M_DEFAULT) => IN_SSL_DEFAULT
+'%' : paint(upto, M_DEFAULT), paint(include, SSL_OPERATOR), \
+	at_eol(IN_M_DEFAULT) => IN_SSL_DEFAULT
+
+state IN_M_STAG_POST_TAGNAME:
+/%\s*end(if|for|while|try|def)/ : paint(upto, M_TAGSPACE), \
+	paint(include, SSL_OPERATOR), \
+	at_eol(IN_M_STAG_POST_TAGNAME) => IN_SSL_DEFAULT
+'%' : paint(upto, M_TAGSPACE), paint(include, SSL_OPERATOR), \
+	at_eol(IN_M_STAG_POST_TAGNAME) => IN_SSL_DEFAULT
+
+# Handle ${...}
+state IN_M_STAG_ATTR_DSTRING:
+'${' : paint(upto, M_STRING), paint(include, SSL_OPERATOR), \
+	spush_check(IN_M_STAG_ATTR_DSTRING) => IN_SSL_DEFAULT
+
+state IN_M_STAG_ATTR_SSTRING:
+'${' : paint(upto, M_STRING), paint(include, SSL_OPERATOR), \
+	spush_check(IN_M_STAG_ATTR_SSTRING) => IN_SSL_DEFAULT
+
+state IN_M_DEFAULT:
+'${' : paint(upto, M_DEFAULT), paint(include, SSL_OPERATOR), \
+	spush_check(IN_M_DEFAULT) => IN_SSL_DEFAULT
+
+# Handle Python Blocks
+state IN_M_DEFAULT:
+/\<%!?\s/ : paint(upto, M_DEFAULT), paint(include, SSL_OPERATOR), \
+	spush_check(IN_M_DEFAULT) => IN_SSL_DEFAULT
+
+# Handle Tags
+state IN_M_DEFAULT:
+/<\/?%/ : paint(upto, M_DEFAULT), paint(include, SSL_OPERATOR), \
+        spush_check(IN_M_DEFAULT) => IN_SSL_TAG
