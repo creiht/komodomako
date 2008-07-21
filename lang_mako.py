@@ -18,7 +18,7 @@
 #    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 #    USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-"""Mason support for codeintel"""
+"""Mako support for codeintel"""
 # Copy this file into KOMODO_DIR/lib/mozilla/python/komodo/codeintel2/
 
 import logging
