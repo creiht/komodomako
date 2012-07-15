@@ -25,7 +25,7 @@ from koXMLLanguageBase import koHTMLLanguageBase
 from codeintel2 import lang_html, lang_javascript
 
 log = logging.getLogger("koMakoLanguage")
-log.setLevel(logging.DEBUG)
+#log.setLevel(logging.DEBUG)
 
 
 def registerLanguage(registry):
