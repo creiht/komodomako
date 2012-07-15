@@ -1,4 +1,4 @@
-# Copyright (c) 2008-2011 Chuck Thier
+# Copyright (c) 2008-2012 Chuck Thier
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@ from koXMLLanguageBase import koHTMLLanguageBase
 from codeintel2 import lang_html, lang_javascript
 
 log = logging.getLogger("koMakoLanguage")
-#log.setLevel(logging.DEBUG)
+log.setLevel(logging.DEBUG)
 
 
 def registerLanguage(registry):
@@ -38,6 +38,7 @@ class KoMakoLanguage(koHTMLLanguageBase):
     lexresLangName = "Mako"
     _reg_desc_ = "%s Language" % name
     _reg_contractid_ = "@activestate.com/koLanguage?language=%s;1" % name
+    _reg_categories_ = [("komodo-language", name)]
     _reg_clsid_ = "5207496e-a7b8-4e10-ba35-f77c07fa3539"
     defaultExtension = '.mako'
 
