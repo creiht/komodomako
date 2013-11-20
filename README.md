@@ -4,6 +4,8 @@ To install the current release, download here: http://community.activestate.com/
 
 ## News
 
+11/20/2013 - Released v1.4 Which will now install on Komodo 8+ (thanks to kshade)
+
 07/14/2012 - Released v1.3 Which will now install on Komodo 7+
 
 04/19/2010 - Released v1.2.1 Which will now install on Komodo 6+ (and future versions as long as the plugin system isn't change substantially)

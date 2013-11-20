@@ -4,7 +4,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>mako_language@evilchuck.com</em:id>
     <em:name>Mako Language</em:name>
-    <em:version>1.3</em:version>
+    <em:version>1.4</em:version>
     <em:description>Mako Template Highlighting</em:description>
     <em:creator>Chuck Thier</em:creator>
     <em:homepageURL>http://community.activestate.com/xpi/mako-template-highlighting</em:homepageURL>
