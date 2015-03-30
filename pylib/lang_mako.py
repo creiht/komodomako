@@ -69,6 +69,98 @@ class MakoLexer(UDLLexer):
 class MakoLangIntel(LangIntel):
     lang = lang
 
+    ##
+    # Implicit codeintel triggering event, i.e. when typing in the editor.
+    #
+    # @param buf {components.interfaces.koICodeIntelBuffer}
+    # @param pos {int} The cursor position in the editor/text.
+    # @param implicit {bool} Automatically called, else manually called?
+    #
+    def trg_from_pos(self, buf, pos, implicit=True, DEBUG=False, ac=None):
+        #DEBUG = True
+        if pos < 1:
+            return None
+
+        # accessor {codeintel2.accessor.Accessor} - Examine text and styling.
+        accessor = buf.accessor
+        last_pos = pos-1
+        char = accessor.char_at_pos(last_pos)
+        style = accessor.style_at_pos(last_pos)
+        if DEBUG:
+            print "trg_from_pos: char: %r, style: %d" % (char, accessor.style_at_pos(last_pos), )
+        if style in (SCE_UDL_SSL_WORD, SCE_UDL_SSL_IDENTIFIER):
+            # Functions/builtins completion trigger.
+            start, end = accessor.contiguous_style_range_from_pos(last_pos)
+            if DEBUG:
+                print "identifier style, start: %d, end: %d" % (start, end)
+            # Trigger when two characters have been typed.
+            if (last_pos - start) == 1:
+                if DEBUG:
+                    print "triggered:: complete identifiers"
+                return Trigger(self.lang, TRG_FORM_CPLN, "identifiers",
+                               start, implicit,
+                               word_start=start, word_end=end)
+        return None
+
+
+    ##
+    # Explicit triggering event, i.e. Ctrl+J.
+    #
+    # @param buf {components.interfaces.koICodeIntelBuffer}
+    # @param pos {int} The cursor position in the editor/text.
+    # @param implicit {bool} Automatically called, else manually called?
+    #
+    def preceding_trg_from_pos(self, buf, pos, curr_pos,
+                               preceding_trg_terminators=None, DEBUG=False):
+        #DEBUG = True
+        if pos < 1:
+            return None
+
+        # accessor {codeintel2.accessor.Accessor} - Examine text and styling.
+        accessor = buf.accessor
+        last_pos = pos-1
+        char = accessor.char_at_pos(last_pos)
+        style = accessor.style_at_pos(last_pos)
+        if DEBUG:
+            print "pos: %d, curr_pos: %d" % (pos, curr_pos)
+            print "char: %r, style: %d" % (char, style)
+        if style in (SCE_UDL_SSL_WORD, SCE_UDL_SSL_IDENTIFIER):
+            # Functions/builtins completion trigger.
+            start, end = accessor.contiguous_style_range_from_pos(last_pos)
+            if DEBUG:
+                print "triggered:: complete identifiers"
+            return Trigger(self.lang, TRG_FORM_CPLN, "identifiers",
+                           start, implicit=False,
+                           word_start=start, word_end=end)
+        return None
+
+    ##
+    # Provide the list of completions or the calltip string.
+    # Completions are a list of tuple (type, name) items.
+    #
+    # Note: This example is *not* asynchronous.
+    def async_eval_at_trg(self, buf, trg, ctlr):
+        if _xpcom_:
+            trg = UnwrapObject(trg)
+            ctlr = UnwrapObject(ctlr)
+        pos = trg.pos
+        ctlr.start(buf, trg)
+
+        if trg.id == (self.lang, TRG_FORM_CPLN, "identifiers"):
+            word_start = trg.extra.get("word_start")
+            word_end = trg.extra.get("word_end")
+            if word_start is not None and word_end is not None:
+                # Only return keywords that start with the given 2-char prefix.
+                prefix = buf.accessor.text_range(word_start, word_end)[:2]
+                cplns = [x for x in keywords if x.startswith(prefix)]
+                cplns = [("keyword", x) for x in sorted(cplns, cmp=CompareNPunctLast)]
+                ctlr.set_cplns(cplns)
+                ctlr.done("success")
+                return
+
+        ctlr.error("Unknown trigger type: %r" % (trg, ))
+        ctlr.done("error")
+
 #---- Buffer class
 
 class MakoBuffer(UDLBuffer, XMLParsingBufferMixin):
@@ -78,6 +170,9 @@ class MakoBuffer(UDLBuffer, XMLParsingBufferMixin):
     css_lang = "CSS"
     csl_lang = "JavaScript"
     ssl_lang = "Python"
+    tpl_lang = "MAKO"
+
+    cb_show_if_empty = True
 
     cpln_stop_chars = "'\" (;},~`@#%^&*()=+{}]|\\;,.<>?/"
 

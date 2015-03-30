@@ -41,6 +41,8 @@ class KoMakoLanguage(koHTMLLanguageBase):
     _reg_clsid_ = "5207496e-a7b8-4e10-ba35-f77c07fa3539"
     defaultExtension = '.mako'
 
+    supportsSmartIndent = "brace"
+
     lang_from_udl_family = {
         'CSL': 'JavaScript',
         'TPL': 'Mako',
